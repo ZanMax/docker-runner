@@ -9,7 +9,7 @@ clear
 # CONFIGS
 
 # docker data folder
-DATA_FOLDER="/mnt/data/docker_data/"
+DATA_FOLDER="~/docker_data/"
 
 # temp or perm
 STATE="perm"
