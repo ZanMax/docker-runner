@@ -48,7 +48,30 @@ func main() {
 		if dockerConfig[answers.Docker] == "Exit" {
 			os.Exit(0)
 		} else if dockerConfig[answers.Docker] == "Additional" {
-			fmt.Println("Additional")
+			file, err := os.Open("recipes")
+			checkError(err)
+			defer file.Close()
+			dirs, err := file.Readdirnames(0)
+			checkError(err)
+			var options []string
+			for _, dir := range dirs {
+				options = append(options, dir)
+			}
+			var qs = []*survey.Question{
+				{
+					Name: "Recipe",
+					Prompt: &survey.Select{
+						Message: "Choose:",
+						Options: options,
+						Default: options[0],
+					},
+				},
+			}
+			answers := struct {
+				Docker string `survey:"Docker"`
+			}{}
+			err = survey.Ask(qs, &answers, survey.WithPageSize(len(options)))
+			checkError(err)
 		} else {
 			command("clear")
 			fmt.Println(answers.Docker, " starting ... ")
