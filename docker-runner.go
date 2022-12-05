@@ -6,6 +6,7 @@ import (
 	"moul.io/banner"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 func main() {
@@ -48,29 +49,22 @@ func main() {
 		if dockerConfig[answers.Docker] == "Exit" {
 			os.Exit(0)
 		} else if dockerConfig[answers.Docker] == "Additional" {
-			file, err := os.Open("recipes")
-			checkError(err)
-			defer file.Close()
-			dirs, err := file.Readdirnames(0)
-			checkError(err)
-			var options []string
-			for _, dir := range dirs {
-				options = append(options, dir)
-			}
-			var qs = []*survey.Question{
+			var additionalOptions []string
+			additionalOptions = append(additionalOptions, getDirsList()...)
+			var qsAdditional = []*survey.Question{
 				{
 					Name: "Recipe",
 					Prompt: &survey.Select{
 						Message: "Choose:",
-						Options: options,
-						Default: options[0],
+						Options: additionalOptions,
+						Default: additionalOptions[0],
 					},
 				},
 			}
-			answers := struct {
+			answersAdditional := struct {
 				Docker string `survey:"Docker"`
 			}{}
-			err = survey.Ask(qs, &answers, survey.WithPageSize(len(options)))
+			err = survey.Ask(qsAdditional, &answersAdditional, survey.WithPageSize(len(options)))
 			checkError(err)
 		} else {
 			command("clear")
@@ -86,6 +80,21 @@ func command(command string) {
 	cmd.Stdout = os.Stdout
 	err := cmd.Run()
 	checkError(err)
+}
+
+func getDirsList() []string {
+	file, err := os.Open("recipes")
+	checkError(err)
+	defer file.Close()
+	dirs, err := file.Readdirnames(0)
+	checkError(err)
+	var dirsList []string
+	for _, dir := range dirs {
+		if !strings.HasPrefix(dir, ".") {
+			dirsList = append(dirsList, dir)
+		}
+	}
+	return dirsList
 }
 
 func checkError(err error) {

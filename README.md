@@ -3,6 +3,7 @@
 Run different prepared docker containers from UI / console
 
 ## Recipes
+You can configure your own recipes in `config.json` file.
 
 - MySQL      	      
 - Postgres   	      
@@ -12,6 +13,7 @@ Run different prepared docker containers from UI / console
 - Memcached
 
 ## Additional recipes
+You can add additional recipes to the `recipes` folder. 
 
 - Gitlab
 - Jenkins
