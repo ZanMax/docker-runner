@@ -1,32 +1,56 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/AlecAivazis/survey/v2"
 	"moul.io/banner"
 	"os"
 	"os/exec"
+	"path"
+	"path/filepath"
 	"strings"
 )
 
+type ContainersConfigs struct {
+	Containers []struct {
+		Name     string `json:"name"`
+		Command  string `json:"command"`
+		DataPath string `json:"data_path"`
+		Notes    string `json:"notes"`
+	} `json:"containers"`
+}
+
 func main() {
-	dockerConfig := map[string]string{
-		"MySql":      "sudo docker run --rm -d -p 3306:3306 --name=mysql -v ${DATA_FOLDER}mysql_data:/var/lib/mysql --env=\"MYSQL_ROOT_PASSWORD=docker\" mysql mysqld --default-authentication-plugin=mysql_native_password",
-		"Postgres":   "docker ps",
-		"Mongo":      "docker ps",
-		"RabbitMQ":   "docker ps",
-		"Redis":      "docker ps",
-		"Memcached":  "docker ps",
-		"Additional": "Additional",
-		"PRUNE":      "docker system prune -a",
-		"Exit":       "Exit",
+	appDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	checkError(err)
+	configPath := path.Join(appDir, "config.json")
+	data, err := os.ReadFile(configPath)
+	checkError(err)
+
+	var config ContainersConfigs
+
+	err = json.Unmarshal(data, &config)
+	checkError(err)
+
+	dockerConfig := map[string]string{}
+	var options []string
+
+	for i := 0; i < len(config.Containers); i++ {
+		options = append(options, config.Containers[i].Name)
+		dockerConfig[config.Containers[i].Name] = config.Containers[i].Command
 	}
+	recipes := getDirsList()
+	if len(recipes) > 0 {
+		options = append(options, "Additional")
+	}
+	options = append(options, "PRUNE")
+	options = append(options, "Exit")
 
 	command("clear")
 
 	fmt.Println(banner.Inline("docker runner"))
-	var options []string
-	options = append(options, "MySql", "Postgres", "Mongo", "RabbitMQ", "Redis", "Memcached", "Additional", "PRUNE", "Exit")
+
 	var qs = []*survey.Question{
 		{
 			Name: "Docker",
