@@ -22,6 +22,7 @@ type ContainersConfigs struct {
 }
 
 func main() {
+
 	appDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	checkError(err)
 	configPath := path.Join(appDir, "config.json")
@@ -47,9 +48,7 @@ func main() {
 	options = append(options, "PRUNE")
 	options = append(options, "Exit")
 
-	command("clear")
-
-	fmt.Println(banner.Inline("docker runner"))
+	showBanner()
 
 	var qs = []*survey.Question{
 		{
@@ -67,14 +66,19 @@ func main() {
 	}{}
 
 	for {
+		showBanner()
 		err := survey.Ask(qs, &answers, survey.WithPageSize(len(options)))
 		checkError(err)
 
-		if dockerConfig[answers.Docker] == "Exit" {
+		if answers.Docker == "Exit" {
 			os.Exit(0)
-		} else if dockerConfig[answers.Docker] == "Additional" {
+		} else if answers.Docker == "PRUNE" {
+			command("sudo docker system prune -f -a")
+			fmt.Println("System pruned")
+		} else if answers.Docker == "Additional" {
 			var additionalOptions []string
 			additionalOptions = append(additionalOptions, getDirsList()...)
+			additionalOptions = append(additionalOptions, "Back")
 			var qsAdditional = []*survey.Question{
 				{
 					Name: "Recipe",
@@ -86,15 +90,22 @@ func main() {
 				},
 			}
 			answersAdditional := struct {
-				Docker string `survey:"Docker"`
+				DockerCompose string `survey:"Recipe"`
 			}{}
 			err = survey.Ask(qsAdditional, &answersAdditional, survey.WithPageSize(len(options)))
 			checkError(err)
+			if answersAdditional.DockerCompose == "Back" {
+				continue
+			} else {
+				fmt.Println("Running recipe: " + answersAdditional.DockerCompose)
+				//command("sudo docker-compose -f recipes/" + answersAdditional.Docker + "/docker-compose.yml up -d")
+				//command("cat recipes/" + answersAdditional.Docker + "/README.md")
+			}
 		} else {
 			command("clear")
 			fmt.Println(answers.Docker, " starting ... ")
 			command(dockerConfig[answers.Docker])
-			command("docker ps")
+			command("docker ps -f name=" + answers.Docker)
 		}
 	}
 }
@@ -107,7 +118,10 @@ func command(command string) {
 }
 
 func getDirsList() []string {
-	file, err := os.Open("recipes")
+	appDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	checkError(err)
+	recipesPath := path.Join(appDir, "recipes")
+	file, err := os.Open(recipesPath)
 	checkError(err)
 	defer file.Close()
 	dirs, err := file.Readdirnames(0)
@@ -125,4 +139,9 @@ func checkError(err error) {
 	if err != nil {
 		fmt.Println(err)
 	}
+}
+
+func showBanner() {
+	command("clear")
+	fmt.Println(banner.Inline("docker runner"))
 }
