@@ -23,3 +23,11 @@ Recipe examples is in `recipes` folder:
 - Jenkins
 - Pi-hole
 - Wireguard
+
+## Compile
+
+### Linux
+GOOS=linux GOARCH=amd64 go build -o bin/linux-amd64 docker-runner.go
+
+### MacOS
+GOOS=darwin GOARCH=amd64 go build -o bin/macos-amd64 docker-runner.go

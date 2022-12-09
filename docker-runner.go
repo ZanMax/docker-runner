@@ -71,10 +71,11 @@ func main() {
 		checkError(err)
 
 		if answers.Docker == "Exit" {
+			command("clear")
 			os.Exit(0)
 		} else if answers.Docker == "PRUNE" {
+			command("clear")
 			command("sudo docker system prune -f -a")
-			fmt.Println("System pruned")
 		} else if answers.Docker == "Additional" {
 			var additionalOptions []string
 			additionalOptions = append(additionalOptions, getDirsList()...)
