@@ -22,6 +22,16 @@ type ContainersConfigs struct {
 }
 
 func main() {
+	colors := map[string]string{
+		"red":    "\033[31m",
+		"green":  "\033[32m",
+		"yellow": "\033[33m",
+		"blue":   "\033[34m",
+		"purple": "\033[35m",
+		"cyan":   "\033[36m",
+		"white":  "\033[37m",
+		"reset":  "\033[0m",
+	}
 
 	appDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	checkError(err)
@@ -39,7 +49,12 @@ func main() {
 
 	for i := 0; i < len(config.Containers); i++ {
 		options = append(options, config.Containers[i].Name)
-		dockerConfig[config.Containers[i].Name] = config.Containers[i].Command
+		if config.Containers[i].DataPath != "" {
+			replacedPathCommand := strings.ReplaceAll(config.Containers[i].Command, "${DATA_PATH}", config.Containers[i].DataPath)
+			dockerConfig[config.Containers[i].Name] = replacedPathCommand
+		} else {
+			dockerConfig[config.Containers[i].Name] = config.Containers[i].Command
+		}
 	}
 	recipes := getDirsList()
 	if len(recipes) > 0 {
@@ -99,14 +114,23 @@ func main() {
 				continue
 			} else {
 				fmt.Println("Running recipe: " + answersAdditional.DockerCompose)
-				//command("sudo docker-compose -f recipes/" + answersAdditional.Docker + "/docker-compose.yml up -d")
-				//command("cat recipes/" + answersAdditional.Docker + "/README.md")
+				command("sudo docker-compose -f recipes/" + answersAdditional.DockerCompose + "/docker-compose.yml up -d")
+				if _, err := os.Stat("recipes/" + answersAdditional.DockerCompose + "/README.md"); err == nil {
+					command("cat recipes/" + answersAdditional.DockerCompose + "/README.md")
+					fmt.Println(string(colors["yellow"]), "Press enter to continue...", string(colors["reset"]))
+					fmt.Scanln()
+				}
 			}
 		} else {
 			command("clear")
 			fmt.Println(answers.Docker, " starting ... ")
 			command(dockerConfig[answers.Docker])
-			command("docker ps -f name=" + answers.Docker)
+			command("docker ps")
+			if config.Containers[0].Notes != "" {
+				fmt.Println(config.Containers[0].Notes)
+				fmt.Println(string(colors["yellow"]), "Press enter to continue...", string(colors["reset"]))
+				fmt.Scanln()
+			}
 		}
 	}
 }
@@ -145,4 +169,5 @@ func checkError(err error) {
 func showBanner() {
 	command("clear")
 	fmt.Println(banner.Inline("docker runner"))
+	fmt.Println("")
 }
