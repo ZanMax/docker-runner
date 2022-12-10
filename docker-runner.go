@@ -114,7 +114,7 @@ func main() {
 				continue
 			} else {
 				fmt.Println("Running recipe: " + answersAdditional.DockerCompose)
-				command("sudo docker-compose -f recipes/" + answersAdditional.DockerCompose + "/docker-compose.yml up -d")
+				command("docker-compose -f recipes/" + answersAdditional.DockerCompose + "/docker-compose.yml up -d")
 				if _, err := os.Stat("recipes/" + answersAdditional.DockerCompose + "/README.md"); err == nil {
 					command("cat recipes/" + answersAdditional.DockerCompose + "/README.md")
 					fmt.Println(string(colors["yellow"]), "Press enter to continue...", string(colors["reset"]))
