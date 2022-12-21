@@ -22,11 +22,25 @@ docker-compose up -d
 
 #### Get client config
 
+show config file
+
 ```bash
-cd /home/dev/wireguard/config/peer1
+docker exec -it wireguard cat /config/peer1/peer1.conf
+```
+or
+```bash
+cat /home/dev/wireguard/config/peer1/peer1.conf
 ```
 
-> Go to /home/dev/wireguard/config/peer1 (peer nubmer link 1,2,3 ...)
->> use peer1.conf or peer1.png file to connect
->> to show png file as QR code just exec
->>> docker exec -it wireguard /app/show-peer 2
+show PNG file as QR code
+```bash
+docker exec -it wireguard /app/show-peer 1
+```
+or you can find generated QR
+/home/dev/wireguard/config/peer1/peer1.png
+
+#### Generate QR from config
+
+```bash
+qrencode -r peer1.conf -t PNG -o daha_vpn.png
+```
